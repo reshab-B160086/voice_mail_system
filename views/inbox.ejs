@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+        .button {
+          background-color: #4CAF50; /* Green */
+          border: none;
+          color: white;
+          padding: 10px 20px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 15px;
+          margin: 1px 1px;
+          cursor: pointer;
+        }
+
+        .left {
+           text-align: left;
+           margin-right: 1em;
+         }
+        
+        .bad{
+            background-color: #3590ae;
+         }
+        .button2 {background-color: #008CBA;} /* Blue */
+ </style>
+</head>
+
+
+    <body>
+         <audio id = "openinbox">
+            <source src="inboxopened.mp3" type="audio/ogg">
+         </audio>
+
+         <audio id = "lastaudio">
+            <source src="nomoremails.mp3" type="audio/ogg">
+         </audio>
+
+         <audio id = "prevaudio">
+                <source src="nopreviousmail.mp3" type="audio/ogg">
+         </audio>
+
+<div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a href="#">
+                        VOICE MAIL SYSTEM
+                    </a>
+                </li>
+                <li>
+                    <a href="#">COMPOSE MAIL</a>
+                </li>
+                <li>
+                    <a href="#">INBOX</a>
+                </li>
+                <li>
+                    <a href="#">SENT MAIL</a>
+                </li>
+                <li>
+                    <a href="#"></a>
+                </li>
+                <li>
+                    <a href="#">TRASH</a>
+                </li>
+                <li>
+                    <a href="#">LOGOUT</a>
+                </li>
+                <li>
+                    <a href="#">Contact</a>
+                </li>
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                    
+
+
+                            <table style="width:70%" id = "myTable">
+                                    <tr class="left bad" id=<%=i%>>
+                                      <th>From</th>
+                                      <th>Subject</th> 
+                                      <th>Date</th>
+                                      <th>Read</th>
+                                      <th>Delete</th>
+                                    </tr>
+                                <% details.forEach((s)=>{%>
+                                    <tr class = "left" id=<%=i+1%>>
+                                      <td><%=s.from %></td>
+                                      <td><%=s.subject %></td>
+                                      <td><%=s.time %></td>
+                                      <td><button class="button button2">Read</button></td>
+                                      <td><button class="button button2">Delete</button></td>
+                                      <%i=i+1%>
+                                    </tr>
+                                <%})%>
+                                  </table>
+
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    </body>      
+    
+    <script>
+
+ var nomoremails = document.getElementById("lastaudio")
+ var prevaudio = document.getElementById("prevaudio")
+ var openinbox = document.getElementById("openinbox")
+
+ var row = document.getElementById("0")
+ var rowid = 0;
+ 
+ var SpeechRecognition = window.webkitSpeechRecognition;
+  
+ var recognition = new SpeechRecognition();
+   
+ var Content = '';
+
+ window.addEventListener('load', 
+  function() { 
+    openinbox.play()
+  }, false);
+
+
+ recognition.continuous = true;
+  
+ recognition.onresult = function(event) {
+  
+   var current = event.resultIndex;
+  
+   var transcript = event.results[current][0].transcript;
+    
+     Content = transcript;
+     console.log(Content)
+    if(Content == "start" || Content == " start" && rowid == 0) {
+        
+        document.getElementById(rowid).classList.remove("bad"); 
+        
+        rowid = rowid+1
+       
+        document.getElementById(rowid).classList.add("bad"); 
+        readmail(rowid)
+    }
+
+    else if(Content == 'next' || Content == ' next'){
+     try{
+             document.getElementById(rowid).classList.remove("bad"); 
+
+             rowid = rowid+1
+       
+             document.getElementById(rowid).classList.add("bad");
+        }
+     catch(error){
+          document.getElementById(rowid-1).classList.add("bad");
+          rowid = rowid - 1
+          nomoremails.play()
+     } 
+    }
+
+    else if (Content == 'previous' || Content == ' previous'){
+        if(rowid >= 2){
+        document.getElementById(rowid).classList.remove("bad");
+        rowid = rowid - 1
+        document.getElementById(rowid).classList.add("bad");}
+        else{
+            prevaudio.play()
+        }
+    }
+
+
+
+
+ };
+  
+ recognition.onstart = function() { 
+   instructions.text('Voice recognition is ON.');
+ }
+  
+ recognition.onspeechend = function() {
+   instructions.text('No activity.');
+ }
+  
+ recognition.onerror = function(event) {
+   if(event.error == 'no-speech') {
+     instructions.text('Try again.');  
+   }
+ }
+ recognition.start();
+
+
+function readmail(rowid){
+    var x = document.getElementById("myTable").rows[Number(rowid)].cells;
+    var s = "message from"
+          s = s + x[0].innerHTML + " subject is " + x[1].innerHTML +" do you want to read it"
+    var msg = new SpeechSynthesisUtterance();
+    var voices = window.speechSynthesis.getVoices();
+    msg.voice = voices[10];
+    msg.voiceURI = "native";
+    msg.volume = 1;
+    msg.rate = 1;
+    msg.pitch = 0.8;
+    msg.text = s;
+    msg.lang = 'en-US';
+    speechSynthesis.speak(msg);
+
+}
+ 
+    </script>
+
+    </html>
